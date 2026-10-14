@@ -349,22 +349,35 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
     }
   };
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const currentCrop = crop || { x: 0, y: 0, width: 100, height: 100 };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-4 animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="editor-title"
     >
-      <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+      <div className="relative w-full max-w-4xl bg-ink-950 border border-ink-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-950 border-b border-slate-800">
-          <div className="flex items-center gap-2 text-white">
-            <CropIcon className="w-5 h-5 text-brand-400" />
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-ink-950 border-b border-ink-800">
+          <div className="flex items-center gap-2.5 text-white">
+            <div className="w-8 h-8 rounded-lg bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400">
+              <CropIcon className="w-4 h-4" />
+            </div>
             <div>
-              <h2 id="editor-title" className="text-sm sm:text-base font-bold">
+              <h2 id="editor-title" className="text-sm sm:text-base font-semibold text-slate-100">
                 Edit & Enhance Photo
               </h2>
               <p className="text-[11px] text-slate-400 truncate max-w-xs sm:max-w-md">
@@ -378,7 +391,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
               type="button"
               onClick={handleResetAll}
               title="Reset all edits"
-              className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5"
+              className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-ink-800 transition flex items-center gap-1.5 border border-ink-800"
             >
               <ResetIcon className="w-3.5 h-3.5" />
               <span>Reset</span>
@@ -386,7 +399,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-ink-800 transition"
               aria-label="Close editor"
             >
               <X className="w-5 h-5" />
@@ -395,10 +408,10 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
         </div>
 
         {/* Workspace Canvas & Interactive Crop Area */}
-        <div className="relative flex-1 bg-black/90 p-4 sm:p-6 flex items-center justify-center overflow-hidden min-h-[280px] sm:min-h-[380px]">
+        <div className="relative flex-1 bg-black/95 p-4 sm:p-6 flex items-center justify-center overflow-hidden min-h-[280px] sm:min-h-[380px]">
           <div
             ref={containerRef}
-            className="relative inline-block max-w-full max-h-[460px] select-none shadow-xl border border-slate-800"
+            className="relative inline-block max-w-full max-h-[460px] select-none shadow-2xl border border-ink-800 rounded-sm"
           >
             {/* The Live Rendered Canvas */}
             <canvas
@@ -460,14 +473,14 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
         </div>
 
         {/* Tab Controls Bar */}
-        <div className="flex items-center justify-center gap-1 sm:gap-2 px-4 py-2 bg-slate-950 border-t border-slate-800">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2.5 bg-ink-950 border-t border-ink-800">
           <button
             type="button"
             onClick={() => setActiveTab('crop')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
               activeTab === 'crop'
                 ? 'bg-brand-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                : 'text-slate-400 hover:text-white hover:bg-ink-900'
             }`}
           >
             <CropIcon className="w-3.5 h-3.5" />
@@ -477,10 +490,10 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('filter')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
               activeTab === 'filter'
                 ? 'bg-brand-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                : 'text-slate-400 hover:text-white hover:bg-ink-900'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -490,10 +503,10 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('adjust')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
               activeTab === 'adjust'
                 ? 'bg-brand-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                : 'text-slate-400 hover:text-white hover:bg-ink-900'
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
@@ -502,7 +515,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
         </div>
 
         {/* Active Tool Sub-Panel */}
-        <div className="p-4 bg-slate-900 border-t border-slate-800">
+        <div className="p-4 bg-ink-950/80 border-t border-ink-800">
           {/* TAB 1: CROP & ROTATE */}
           {activeTab === 'crop' && (
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -512,7 +525,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                 <button
                   type="button"
                   onClick={() => setRotation(r => (r - 90 + 360) % 360)}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1 transition"
+                  className="p-2 rounded-lg bg-ink-900 hover:bg-ink-800 text-slate-200 text-xs font-medium flex items-center gap-1 transition border border-ink-850"
                   title="Rotate -90°"
                 >
                   <RotateCcw className="w-4 h-4" />
@@ -521,7 +534,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                 <button
                   type="button"
                   onClick={() => setRotation(r => (r + 90) % 360)}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium flex items-center gap-1 transition"
+                  className="p-2 rounded-lg bg-ink-900 hover:bg-ink-800 text-slate-200 text-xs font-medium flex items-center gap-1 transition border border-ink-850"
                   title="Rotate +90°"
                 >
                   <RotateCw className="w-4 h-4" />
@@ -543,7 +556,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                   className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                     aspectPreset === 'free'
                       ? 'bg-brand-600 text-white'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      : 'bg-ink-900 text-slate-300 hover:bg-ink-800 border border-ink-850'
                   }`}
                 >
                   <Maximize2 className="w-3 h-3 inline mr-1" />
@@ -555,7 +568,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                   className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                     aspectPreset === 'a4'
                       ? 'bg-brand-600 text-white'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      : 'bg-ink-900 text-slate-300 hover:bg-ink-800 border border-ink-850'
                   }`}
                 >
                   <FileText className="w-3 h-3 inline mr-1" />
@@ -567,7 +580,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                   className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                     aspectPreset === '1:1'
                       ? 'bg-brand-600 text-white'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      : 'bg-ink-900 text-slate-300 hover:bg-ink-800 border border-ink-850'
                   }`}
                 >
                   1:1
@@ -578,7 +591,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                   className={`px-2.5 py-1 rounded-md text-xs font-medium transition ${
                     aspectPreset === '4:3'
                       ? 'bg-brand-600 text-white'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      : 'bg-ink-900 text-slate-300 hover:bg-ink-800 border border-ink-850'
                   }`}
                 >
                   4:3
@@ -605,11 +618,11 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                 onClick={() => setFilter('none')}
                 className={`p-3 rounded-xl border text-left transition ${
                   filter === 'none'
-                    ? 'border-brand-500 bg-brand-500/10 text-white'
-                    : 'border-slate-800 bg-slate-850 hover:bg-slate-800 text-slate-300'
+                    ? 'border-brand-500 bg-brand-500/10 text-white shadow-sm'
+                    : 'border-ink-800 bg-ink-900 hover:bg-ink-850 text-slate-300'
                 }`}
               >
-                <span className="block text-xs font-bold">Original</span>
+                <span className="block text-xs font-semibold">Original</span>
                 <span className="block text-[10px] text-slate-400 mt-0.5">
                   Natural color & light
                 </span>
@@ -620,11 +633,11 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                 onClick={() => setFilter('enhanced')}
                 className={`p-3 rounded-xl border text-left transition ${
                   filter === 'enhanced'
-                    ? 'border-brand-500 bg-brand-500/10 text-white'
-                    : 'border-slate-800 bg-slate-850 hover:bg-slate-800 text-slate-300'
+                    ? 'border-brand-500 bg-brand-500/10 text-white shadow-sm'
+                    : 'border-ink-800 bg-ink-900 hover:bg-ink-850 text-slate-300'
                 }`}
               >
-                <span className="block text-xs font-bold flex items-center gap-1 text-emerald-400">
+                <span className="block text-xs font-semibold flex items-center gap-1 text-emerald-400">
                   <Sparkles className="w-3 h-3" />
                   Magic Color
                 </span>
@@ -638,11 +651,11 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                 onClick={() => setFilter('bw')}
                 className={`p-3 rounded-xl border text-left transition ${
                   filter === 'bw'
-                    ? 'border-brand-500 bg-brand-500/10 text-white'
-                    : 'border-slate-800 bg-slate-850 hover:bg-slate-800 text-slate-300'
+                    ? 'border-brand-500 bg-brand-500/10 text-white shadow-sm'
+                    : 'border-ink-800 bg-ink-900 hover:bg-ink-850 text-slate-300'
                 }`}
               >
-                <span className="block text-xs font-bold text-amber-300">B&W Document</span>
+                <span className="block text-xs font-semibold text-amber-300">B&W Document</span>
                 <span className="block text-[10px] text-slate-400 mt-0.5">
                   High-contrast scan text
                 </span>
@@ -653,11 +666,11 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
                 onClick={() => setFilter('grayscale')}
                 className={`p-3 rounded-xl border text-left transition ${
                   filter === 'grayscale'
-                    ? 'border-brand-500 bg-brand-500/10 text-white'
-                    : 'border-slate-800 bg-slate-850 hover:bg-slate-800 text-slate-300'
+                    ? 'border-brand-500 bg-brand-500/10 text-white shadow-sm'
+                    : 'border-ink-800 bg-ink-900 hover:bg-ink-850 text-slate-300'
                 }`}
               >
-                <span className="block text-xs font-bold">Grayscale</span>
+                <span className="block text-xs font-semibold">Grayscale</span>
                 <span className="block text-[10px] text-slate-400 mt-0.5">
                   Smooth 8-bit monochrome
                 </span>
@@ -671,7 +684,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
               <div>
                 <div className="flex justify-between text-xs text-slate-300 mb-1">
                   <span>Brightness</span>
-                  <span className="font-mono">{adjustments.brightness}</span>
+                  <span className="font-mono text-brand-400">{adjustments.brightness}</span>
                 </div>
                 <input
                   type="range"
@@ -691,7 +704,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
               <div>
                 <div className="flex justify-between text-xs text-slate-300 mb-1">
                   <span>Contrast</span>
-                  <span className="font-mono">{adjustments.contrast}</span>
+                  <span className="font-mono text-brand-400">{adjustments.contrast}</span>
                 </div>
                 <input
                   type="range"
@@ -712,7 +725,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-950 border-t border-slate-800">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 bg-ink-950 border-t border-ink-800">
           <div className="text-xs text-slate-400">
             {crop && <span>Cropped • </span>}
             {rotation !== 0 && <span>Rotated {rotation}° • </span>}
@@ -724,7 +737,7 @@ const ImageEditorModalContent: React.FC<ImageEditorModalContentProps> = ({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-slate-300 hover:bg-slate-800"
+              className="text-slate-300 hover:bg-ink-800 hover:text-white"
             >
               Cancel
             </Button>

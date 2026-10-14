@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --color-bg: #f8fafc;
+    --color-bg: #fafaf9;
     --color-surface: #ffffff;
     --color-border: #e2e8f0;
     --color-text-main: #0f172a;
@@ -14,12 +14,23 @@
   body {
     @apply bg-slate-50 text-slate-900 antialiased selection:bg-brand-100 selection:text-brand-900;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    text-rendering: optimizeLegibility;
     min-height: 100vh;
   }
 
   /* Accessible focus indicators */
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white;
+    @apply outline-none ring-2 ring-brand-600 ring-offset-2 ring-offset-white;
+  }
+}
+
+/* Accessibility: Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -30,6 +41,6 @@
   }
   
   .card-base {
-    @apply bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow transition-shadow;
+    @apply bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow transition-all;
   }
 }

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { UploadCloud, Camera, Plus } from 'lucide-react';
+import { UploadCloud, Camera, Plus, FileUp } from 'lucide-react';
 import { validateFile, validateBatch } from '../../lib/validation/file-validator';
 import type { FileItem } from '../../types/file.types';
 import { createThumbnailUrl } from '../../lib/image/canvas-utils';
@@ -69,7 +69,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         continue;
       }
 
-      const id = `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+      const id = `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       let previewUrl: string | undefined = undefined;
       let pageCount: number | undefined = undefined;
 
@@ -174,10 +174,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           type="button"
           onClick={triggerPicker}
           disabled={isValidating}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-slate-300 hover:border-brand-500 hover:bg-brand-50 text-xs font-semibold text-slate-700 transition"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-brand-500 hover:bg-brand-50/50 text-xs font-semibold text-slate-700 transition shadow-2xs"
         >
-          <Plus className="w-4 h-4 text-brand-600" />
-          <span>Add More Files</span>
+          <Plus className="w-3.5 h-3.5 text-brand-600" />
+          <span>Add Photos</span>
         </button>
 
         {allowCamera && (
@@ -188,10 +188,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
               else triggerCamera();
             }}
             disabled={isValidating}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-xs font-semibold text-slate-700 transition"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-brand-500 hover:bg-brand-50/50 text-xs font-semibold text-slate-700 transition shadow-2xs"
           >
-            <Camera className="w-4 h-4 text-brand-600" />
-            <span>Camera Scan</span>
+            <Camera className="w-3.5 h-3.5 text-brand-600" />
+            <span>Scan with Camera</span>
           </button>
         )}
       </div>
@@ -213,10 +213,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       tabIndex={0}
       role="button"
       aria-label="Upload file drop zone"
-      className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+      className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 ${
         isDragOver
-          ? 'border-brand-500 bg-brand-50/70 scale-[0.99]'
-          : 'border-slate-300 hover:border-brand-400 bg-white hover:bg-slate-50/50'
+          ? 'border-brand-500 bg-brand-50/70 scale-[0.99] shadow-sm'
+          : 'border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50/60 shadow-xs'
       }`}
     >
       <input
@@ -242,19 +242,19 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       )}
 
       <div className="flex flex-col items-center justify-center max-w-md mx-auto pointer-events-none">
-        <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mb-4 shadow-sm border border-brand-100">
+        <div className="w-14 h-14 rounded-2xl bg-brand-50/80 text-brand-700 flex items-center justify-center mb-4 shadow-xs border border-brand-100">
           <UploadCloud className="w-7 h-7" />
         </div>
 
-        <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-1">
+        <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mb-1">
           {title}
         </h3>
 
-        <p className="text-xs sm:text-sm text-slate-500 mb-4">
+        <p className="text-xs sm:text-sm text-slate-500 mb-5 max-w-sm">
           {subtitle || `Supported formats: ${acceptedExtensions.join(', ')}`}
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-2 pointer-events-auto">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 pointer-events-auto">
           <button
             type="button"
             onClick={e => {
@@ -262,9 +262,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
               triggerPicker();
             }}
             disabled={isValidating}
-            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-semibold shadow-sm transition"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white rounded-lg text-sm font-semibold shadow-xs transition"
           >
-            {isValidating ? 'Validating...' : multiple ? 'Choose Files' : 'Choose File'}
+            <FileUp className="w-4 h-4" />
+            <span>{isValidating ? 'Validating...' : multiple ? 'Choose Files' : 'Choose File'}</span>
           </button>
 
           {allowCamera && (
@@ -275,7 +276,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                 if (onOpenScanner) onOpenScanner();
                 else triggerCamera();
               }}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition flex items-center gap-1.5"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 rounded-lg text-sm font-semibold shadow-2xs transition"
             >
               <Camera className="w-4 h-4 text-brand-600" />
               <span>Camera Scan</span>
