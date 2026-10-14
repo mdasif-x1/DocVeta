@@ -94,18 +94,23 @@ export const MergePdfFeature: React.FC<MergePdfFeatureProps> = ({ tool }) => {
 
       {/* State 2: Selected PDFs Workspace */}
       {items.length > 0 && !mergedBlob && (
-        <div className="space-y-6">
-          {/* Header Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white border border-slate-200/80 rounded-xl">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">
-                {items.length} PDF files selected
-                {totalPages > 0 && ` (${totalPages} total pages)`}
-              </h3>
-              <p className="text-xs text-slate-500">
-                Drag cards or use up/down arrows to arrange the merge order.
-              </p>
+        <div className="space-y-5">
+          {/* Top Bar: PDF count & Add / Clear Actions */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-900 text-sm">
+                {items.length} {items.length === 1 ? 'file' : 'files'}
+              </span>
+              {totalPages > 0 && (
+                <>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-xs text-slate-500 font-normal">
+                    {totalPages} total pages
+                  </span>
+                </>
+              )}
             </div>
+
             <div className="flex items-center gap-2">
               <FileUpload
                 compact
@@ -115,9 +120,13 @@ export const MergePdfFeature: React.FC<MergePdfFeatureProps> = ({ tool }) => {
                 onFilesSelected={handleFilesSelected}
                 onError={setErrorMessage}
               />
-              <Button variant="ghost" size="sm" onClick={handleReset}>
-                Clear All
-              </Button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-xs text-slate-400 hover:text-slate-700 px-2 py-1.5 transition"
+              >
+                Clear
+              </button>
             </div>
           </div>
 
@@ -131,13 +140,13 @@ export const MergePdfFeature: React.FC<MergePdfFeatureProps> = ({ tool }) => {
 
           {items.length < 2 && (
             <Alert type="info">
-              Add at least 1 more PDF file to merge them together.
+              Add at least 1 more PDF document to merge them together.
             </Alert>
           )}
 
           {/* Progress */}
           {isProcessing && progress && (
-            <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs">
               <ProgressBar
                 percentage={progress.percentage}
                 statusMessage={progress.statusMessage}
@@ -145,16 +154,20 @@ export const MergePdfFeature: React.FC<MergePdfFeatureProps> = ({ tool }) => {
             </div>
           )}
 
-          {/* Merge Trigger */}
-          <div className="flex justify-end pt-2">
+          {/* Merge Action */}
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-xs text-slate-400">
+              PDFs will be merged in the order shown above.
+            </span>
             <Button
-              size="lg"
+              size="md"
               onClick={handleMerge}
-              isLoading={isProcessing}
               disabled={items.length < 2}
-              leftIcon={<Files className="w-5 h-5" />}
+              isLoading={isProcessing}
+              leftIcon={<Files className="w-4 h-4" />}
+              className="px-5 py-2.5 font-medium"
             >
-              Merge {items.length} PDF Files
+              Merge {items.length} PDFs
             </Button>
           </div>
         </div>

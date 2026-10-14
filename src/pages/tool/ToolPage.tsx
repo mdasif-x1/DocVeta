@@ -13,7 +13,6 @@ import { MergePdfFeature } from '../../features/merge-pdf/MergePdfFeature';
 import { PdfToImageFeature } from '../../features/pdf-to-image/PdfToImageFeature';
 import { PdfToTextFeature } from '../../features/pdf-to-text/PdfToTextFeature';
 import { ImageToTextFeature } from '../../features/image-to-text/ImageToTextFeature';
-import { ShieldCheck } from 'lucide-react';
 
 export const ToolPage: React.FC = () => {
   const { toolSlug } = useParams<{ toolSlug: string }>();
@@ -86,23 +85,18 @@ export const ToolPage: React.FC = () => {
         />
 
         {/* Tool Header Section */}
-        <div className="mb-8 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-800 text-xs font-semibold mb-3">
-            <ShieldCheck className="w-3.5 h-3.5 text-brand-600" />
-            <span>{seo?.badge || '100% In-Browser & Private'}</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+        <div className="mb-6 text-center max-w-2xl mx-auto">
+          <h1 className="text-xl sm:text-3xl font-bold text-slate-950 tracking-tight mb-2">
             {seo?.h1 || tool.name}
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
             {tool.description}
           </p>
         </div>
 
         {/* Primary Interactive Tool Workspace */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-8 shadow-sm">
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-7 shadow-2xs">
           {renderFeature()}
         </div>
 

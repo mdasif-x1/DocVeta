@@ -18,24 +18,19 @@ export const Header: React.FC = () => {
 
   return (
     <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 transition-all">
-      <div className="docveta-container flex items-center justify-between h-16">
+      <div className="docveta-container flex items-center justify-between h-14">
         {/* Brand Logo & Wordmark */}
         <Link
           to="/"
-          className="flex items-center gap-2.5 text-slate-900 group"
+          className="flex items-center gap-2 text-slate-900 group"
           aria-label="DocVeta - Home"
         >
-          <div className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-xs group-hover:bg-brand-700 transition">
-            <FileText className="w-4 h-4" />
+          <div className="w-7 h-7 rounded-md bg-brand-600 text-white flex items-center justify-center shadow-2xs group-hover:bg-brand-700 transition">
+            <FileText className="w-3.5 h-3.5" />
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-lg tracking-tight text-slate-950 leading-none">
-              {APP_CONFIG.name}
-            </span>
-            <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 mt-0.5">
-              Document Utility
-            </span>
-          </div>
+          <span className="font-semibold text-base tracking-tight text-slate-950">
+            {APP_CONFIG.name}
+          </span>
         </Link>
 
         {/* Desktop Navigation Links */}

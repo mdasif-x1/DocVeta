@@ -201,33 +201,29 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
 
       {/* State 2: Selected Files Workspace */}
       {items.length > 0 && !generatedPdfBlob && (
-        <div className="space-y-6">
-          {/* Header Controls: File count + Multi-photo Quick Actions */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white border border-slate-200/80 rounded-xl shadow-xs">
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-900">
-                  {items.length} {items.length === 1 ? 'image' : 'images'} in document
-                </h3>
-                <span className="text-xs text-slate-500 font-medium">
-                  ({formatBytes(totalBytes)})
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Drag cards or use arrows to rearrange pages. Click any image to crop, rotate, or enhance.
-              </p>
+        <div className="space-y-5">
+          {/* Top Bar: Page counter & Compact Workspace Actions */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-900 text-sm">
+                {items.length} {items.length === 1 ? 'page' : 'pages'}
+              </span>
+              <span className="text-slate-300">•</span>
+              <span className="text-xs text-slate-500 font-normal">
+                {formatBytes(totalBytes)}
+              </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {/* Camera Scanner Button */}
+              {/* Scan More (Camera) */}
               {tool.allowCamera && (
                 <button
                   type="button"
                   onClick={() => setIsCameraModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-xs font-semibold text-slate-700 transition"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 transition shadow-2xs"
                 >
-                  <Camera className="w-3.5 h-3.5 text-brand-600" />
-                  <span>Scan More</span>
+                  <Camera className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Scan</span>
                 </button>
               )}
 
@@ -246,11 +242,11 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
               <button
                 type="button"
                 onClick={handleRotateAll}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-700 transition"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 transition shadow-2xs"
                 title="Rotate all pages 90° clockwise"
               >
                 <RotateCw className="w-3.5 h-3.5 text-slate-500" />
-                <span>Rotate All</span>
+                <span className="hidden sm:inline">Rotate All</span>
               </button>
 
               {/* Reverse Order shortcut */}
@@ -258,18 +254,22 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
                 <button
                   type="button"
                   onClick={handleReverseOrder}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-700 transition"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 transition shadow-2xs"
                   title="Reverse page sequence"
                 >
                   <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Reverse</span>
+                  <span className="hidden sm:inline">Reverse</span>
                 </button>
               )}
 
               {/* Clear All */}
-              <Button variant="ghost" size="sm" onClick={handleReset}>
-                Clear All
-              </Button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-xs text-slate-400 hover:text-slate-700 px-2 py-1.5 transition"
+              >
+                Clear
+              </button>
             </div>
           </div>
 
@@ -284,14 +284,16 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
             onReorder={setItems}
           />
 
-          {/* Options Panel */}
-          <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-4 text-slate-800 font-bold text-sm">
-              <Settings2 className="w-4 h-4 text-brand-600" />
-              <span>Page Layout & PDF Settings</span>
+          {/* Collapsible / Streamlined Page Layout Settings */}
+          <div className="bg-slate-50/70 border border-slate-200/70 rounded-xl p-4 transition-all">
+            <div className="flex items-center justify-between mb-3 text-slate-800 text-xs font-medium">
+              <div className="flex items-center gap-1.5">
+                <Settings2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Page Layout Options</span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <Select
                 label="Page Size"
                 value={options.pageSize}
@@ -302,7 +304,7 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
                   }))
                 }
                 options={[
-                  { label: 'A4 (Standard Document)', value: 'A4' },
+                  { label: 'A4 (210 × 297 mm)', value: 'A4' },
                   { label: 'US Letter', value: 'Letter' },
                   { label: 'Fit to Image Size', value: 'FitImage' },
                 ]}
@@ -334,10 +336,10 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
                   }))
                 }
                 options={[
-                  { label: 'No Margin (Border to border)', value: 'none' },
-                  { label: 'Small Margin', value: 'small' },
-                  { label: 'Medium Margin', value: 'medium' },
-                  { label: 'Large Margin', value: 'large' },
+                  { label: 'None (Border to border)', value: 'none' },
+                  { label: 'Small', value: 'small' },
+                  { label: 'Medium', value: 'medium' },
+                  { label: 'Large', value: 'large' },
                 ]}
               />
 
@@ -360,7 +362,7 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
 
           {/* Processing Progress */}
           {isProcessing && progress && (
-            <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs">
               <ProgressBar
                 percentage={progress.percentage}
                 statusMessage={progress.statusMessage}
@@ -369,14 +371,18 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
           )}
 
           {/* Action Trigger */}
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-xs text-slate-400">
+              Page order above will match the generated PDF.
+            </span>
             <Button
-              size="lg"
+              size="md"
               onClick={handleGeneratePdf}
               isLoading={isProcessing}
-              leftIcon={<FileCheck className="w-5 h-5" />}
+              leftIcon={<FileCheck className="w-4 h-4" />}
+              className="px-5 py-2.5 font-medium"
             >
-              Create PDF ({items.length} {items.length === 1 ? 'Page' : 'Pages'})
+              Export PDF ({items.length} {items.length === 1 ? 'Page' : 'Pages'})
             </Button>
           </div>
         </div>
