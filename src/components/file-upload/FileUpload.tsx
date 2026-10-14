@@ -14,6 +14,7 @@ export interface FileUploadProps {
   maxFileSize?: number;
   onFilesSelected: (files: FileItem[]) => void;
   onError?: (message: string) => void;
+  onOpenScanner?: () => void;
   title?: string;
   subtitle?: string;
   compact?: boolean;
@@ -28,6 +29,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   maxFileSize,
   onFilesSelected,
   onError,
+  onOpenScanner,
   title = 'Choose files or drag and drop here',
   subtitle,
   compact = false,
@@ -157,6 +159,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           className="hidden"
           aria-label="Upload files"
         />
+        {allowCamera && (
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleInputChange}
+            className="hidden"
+            tabIndex={-1}
+          />
+        )}
         <button
           type="button"
           onClick={triggerPicker}
@@ -166,6 +179,21 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <Plus className="w-4 h-4 text-brand-600" />
           <span>Add More Files</span>
         </button>
+
+        {allowCamera && (
+          <button
+            type="button"
+            onClick={() => {
+              if (onOpenScanner) onOpenScanner();
+              else triggerCamera();
+            }}
+            disabled={isValidating}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-xs font-semibold text-slate-700 transition"
+          >
+            <Camera className="w-4 h-4 text-brand-600" />
+            <span>Camera Scan</span>
+          </button>
+        )}
       </div>
     );
   }
@@ -244,12 +272,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({
               type="button"
               onClick={e => {
                 e.stopPropagation();
-                triggerCamera();
+                if (onOpenScanner) onOpenScanner();
+                else triggerCamera();
               }}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition flex items-center gap-1.5 sm:hidden"
+              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition flex items-center gap-1.5"
             >
-              <Camera className="w-4 h-4" />
-              <span>Camera</span>
+              <Camera className="w-4 h-4 text-brand-600" />
+              <span>Camera Scan</span>
             </button>
           )}
         </div>

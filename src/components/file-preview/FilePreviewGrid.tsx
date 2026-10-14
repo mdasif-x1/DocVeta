@@ -5,30 +5,44 @@ import { FileCard } from './FileCard';
 export interface FilePreviewGridProps {
   items: FileItem[];
   showRotate?: boolean;
+  showEdit?: boolean;
   onReorder: (newItems: FileItem[]) => void;
   onRotate?: (id: string) => void;
+  onEdit?: (item: FileItem) => void;
   onRemove: (id: string) => void;
 }
 
 export const FilePreviewGrid: React.FC<FilePreviewGridProps> = ({
   items,
   showRotate = false,
+  showEdit = false,
   onReorder,
   onRotate,
+  onEdit,
   onRemove,
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const handleDragStart = (_e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
   };
 
-  const handleDragOver = (e: React.DragEvent, _index: number) => {
+  const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
   };
 
   const handleDrop = (e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
+    setDragOverIndex(null);
+
     if (draggedIndex === null || draggedIndex === targetIndex) {
       setDraggedIndex(null);
       return;
@@ -68,12 +82,17 @@ export const FilePreviewGrid: React.FC<FilePreviewGridProps> = ({
           index={index}
           total={items.length}
           showRotate={showRotate}
+          showEdit={showEdit}
+          isDragging={draggedIndex === index}
+          isDragOver={dragOverIndex === index}
+          onEdit={onEdit}
           onRotate={onRotate}
           onRemove={onRemove}
           onMoveUp={handleMoveUp}
           onMoveDown={handleMoveDown}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         />
       ))}

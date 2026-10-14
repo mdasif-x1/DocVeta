@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
-import type { FileItem } from '../../types/file.types';
+import type { FileItem, CropRegion, ImageFilterMode, ImageAdjustments } from '../../types/file.types';
 import type { ImageToPdfOptions, ProcessingProgress } from '../../types/processing.types';
 import type { ToolMetadata } from '../../types/tool.types';
 import { FileUpload } from '../../components/file-upload/FileUpload';
 import { FilePreviewGrid } from '../../components/file-preview/FilePreviewGrid';
+import { CameraCaptureModal } from '../../components/camera/CameraCaptureModal';
+import { ImageEditorModal } from '../../components/image-editor/ImageEditorModal';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { Button } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Select';
 import { Alert } from '../../components/ui/Alert';
 import { convertImagesToPdf } from '../../lib/pdf/image-to-pdf';
+import { createThumbnailUrl } from '../../lib/image/canvas-utils';
 import { downloadBlob } from '../../lib/utilities/download';
 import { generateDownloadName } from '../../lib/utilities/sanitize';
-import { Download, RefreshCw, FileCheck, Settings2 } from 'lucide-react';
+import {
+  Download,
+  RefreshCw,
+  FileCheck,
+  Settings2,
+  Camera,
+  ArrowUpDown,
+  RotateCw,
+} from 'lucide-react';
 import { formatBytes } from '../../lib/utilities/formatters';
 
 export interface ImageToPdfFeatureProps {
@@ -25,6 +36,10 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [generatedPdfBlob, setGeneratedPdfBlob] = useState<Blob | null>(null);
   const [pdfSize, setPdfSize] = useState<number>(0);
+
+  // Modal dialog states
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<FileItem | null>(null);
 
   // PDF Page Layout Options
   const [options, setOptions] = useState<ImageToPdfOptions>({
@@ -41,6 +56,34 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
     setItems(prev => [...prev, ...newItems]);
   };
 
+  const handleCameraPhotosCaptured = async (rawFiles: File[]) => {
+    const newItems: FileItem[] = [];
+    for (const file of rawFiles) {
+      let previewUrl: string | undefined;
+      try {
+        previewUrl = await createThumbnailUrl(file, 200, 200);
+      } catch {
+        // Fallback gracefully
+      }
+      newItems.push({
+        id: `cam-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        file,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        previewUrl,
+        rotation: 0,
+        status: 'ready',
+      });
+    }
+
+    if (newItems.length > 0) {
+      setErrorMessage(null);
+      setGeneratedPdfBlob(null);
+      setItems(prev => [...prev, ...newItems]);
+    }
+  };
+
   const handleRotate = (id: string) => {
     setItems(prev =>
       prev.map(item =>
@@ -49,8 +92,48 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
     );
   };
 
+  const handleRotateAll = () => {
+    setItems(prev =>
+      prev.map(item => ({
+        ...item,
+        rotation: (item.rotation + 90) % 360,
+      }))
+    );
+  };
+
+  const handleReverseOrder = () => {
+    setItems(prev => [...prev].reverse());
+  };
+
   const handleRemove = (id: string) => {
     setItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleSaveImageEdits = (
+    id: string,
+    updates: {
+      rotation: number;
+      crop?: CropRegion;
+      filter?: ImageFilterMode;
+      adjustments?: ImageAdjustments;
+      previewUrl: string;
+    }
+  ) => {
+    setItems(prev =>
+      prev.map(it => {
+        if (it.id === id) {
+          return {
+            ...it,
+            rotation: updates.rotation,
+            crop: updates.crop,
+            filter: updates.filter,
+            adjustments: updates.adjustments,
+            previewUrl: updates.previewUrl,
+          };
+        }
+        return it;
+      })
+    );
   };
 
   const handleGeneratePdf = async () => {
@@ -89,6 +172,8 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
     setErrorMessage(null);
   };
 
+  const totalBytes = items.reduce((sum, it) => sum + it.size, 0);
+
   return (
     <div className="space-y-6">
       {errorMessage && (
@@ -104,6 +189,7 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
           acceptedExtensions={tool.acceptedExtensions}
           multiple={tool.multipleFiles}
           allowCamera={tool.allowCamera}
+          onOpenScanner={() => setIsCameraModalOpen(true)}
           maxFiles={tool.limits.maxFiles}
           maxFileSize={tool.limits.maxSingleSize}
           onFilesSelected={handleFilesSelected}
@@ -116,35 +202,83 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
       {/* State 2: Selected Files Workspace */}
       {items.length > 0 && !generatedPdfBlob && (
         <div className="space-y-6">
-          {/* Header Controls: File count + Add more */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white border border-slate-200/80 rounded-xl">
+          {/* Header Controls: File count + Multi-photo Quick Actions */}
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white border border-slate-200/80 rounded-xl shadow-xs">
             <div>
-              <h3 className="text-sm font-bold text-slate-800">
-                {items.length} {items.length === 1 ? 'image' : 'images'} selected
-              </h3>
-              <p className="text-xs text-slate-500">
-                Drag cards or use arrows to rearrange page order. Click rotate to adjust orientation.
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900">
+                  {items.length} {items.length === 1 ? 'image' : 'images'} in document
+                </h3>
+                <span className="text-xs text-slate-500 font-medium">
+                  ({formatBytes(totalBytes)})
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Drag cards or use arrows to rearrange pages. Click any image to crop, rotate, or enhance.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Camera Scanner Button */}
+              {tool.allowCamera && (
+                <button
+                  type="button"
+                  onClick={() => setIsCameraModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-xs font-semibold text-slate-700 transition"
+                >
+                  <Camera className="w-3.5 h-3.5 text-brand-600" />
+                  <span>Scan More</span>
+                </button>
+              )}
+
+              {/* Add More Files */}
               <FileUpload
                 compact
                 acceptedMimes={tool.acceptedMimes}
                 acceptedExtensions={tool.acceptedExtensions}
                 multiple={true}
+                allowCamera={false}
                 onFilesSelected={handleFilesSelected}
                 onError={setErrorMessage}
               />
+
+              {/* Rotate All shortcut */}
+              <button
+                type="button"
+                onClick={handleRotateAll}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-700 transition"
+                title="Rotate all pages 90° clockwise"
+              >
+                <RotateCw className="w-3.5 h-3.5 text-slate-500" />
+                <span>Rotate All</span>
+              </button>
+
+              {/* Reverse Order shortcut */}
+              {items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleReverseOrder}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-700 transition"
+                  title="Reverse page sequence"
+                >
+                  <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Reverse</span>
+                </button>
+              )}
+
+              {/* Clear All */}
               <Button variant="ghost" size="sm" onClick={handleReset}>
                 Clear All
               </Button>
             </div>
           </div>
 
-          {/* Thumbnails Grid */}
+          {/* Thumbnails Grid with drag and drop & edit modal trigger */}
           <FilePreviewGrid
             items={items}
             showRotate={true}
+            showEdit={true}
+            onEdit={item => setEditingItem(item)}
             onRotate={handleRotate}
             onRemove={handleRemove}
             onReorder={setItems}
@@ -162,7 +296,10 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
                 label="Page Size"
                 value={options.pageSize}
                 onChange={e =>
-                  setOptions(prev => ({ ...prev, pageSize: e.target.value as any }))
+                  setOptions(prev => ({
+                    ...prev,
+                    pageSize: e.target.value as 'A4' | 'Letter' | 'FitImage',
+                  }))
                 }
                 options={[
                   { label: 'A4 (Standard Document)', value: 'A4' },
@@ -175,7 +312,10 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
                 label="Orientation"
                 value={options.orientation}
                 onChange={e =>
-                  setOptions(prev => ({ ...prev, orientation: e.target.value as any }))
+                  setOptions(prev => ({
+                    ...prev,
+                    orientation: e.target.value as 'auto' | 'portrait' | 'landscape',
+                  }))
                 }
                 options={[
                   { label: 'Auto (Match Image)', value: 'auto' },
@@ -188,7 +328,10 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
                 label="Margins"
                 value={options.margin}
                 onChange={e =>
-                  setOptions(prev => ({ ...prev, margin: e.target.value as any }))
+                  setOptions(prev => ({
+                    ...prev,
+                    margin: e.target.value as 'none' | 'small' | 'medium' | 'large',
+                  }))
                 }
                 options={[
                   { label: 'No Margin (Border to border)', value: 'none' },
@@ -202,7 +345,10 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
                 label="Image Fit"
                 value={options.fit}
                 onChange={e =>
-                  setOptions(prev => ({ ...prev, fit: e.target.value as any }))
+                  setOptions(prev => ({
+                    ...prev,
+                    fit: e.target.value as 'contain' | 'fill',
+                  }))
                 }
                 options={[
                   { label: 'Contain (Preserve ratio)', value: 'contain' },
@@ -273,6 +419,21 @@ export const ImageToPdfFeature: React.FC<ImageToPdfFeatureProps> = ({ tool }) =>
           </div>
         </div>
       )}
+
+      {/* Camera Scanner Viewfinder Modal */}
+      <CameraCaptureModal
+        isOpen={isCameraModalOpen}
+        onClose={() => setIsCameraModalOpen(false)}
+        onCapturePhotos={handleCameraPhotosCaptured}
+      />
+
+      {/* Image Editor, Cropper & Enhancer Modal */}
+      <ImageEditorModal
+        isOpen={Boolean(editingItem)}
+        item={editingItem}
+        onClose={() => setEditingItem(null)}
+        onSave={handleSaveImageEdits}
+      />
     </div>
   );
 };

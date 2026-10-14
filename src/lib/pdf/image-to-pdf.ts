@@ -1,7 +1,7 @@
 import { PDFDocument } from 'pdf-lib';
 import type { FileItem } from '../../types/file.types';
 import type { ImageToPdfOptions, ProcessingProgress } from '../../types/processing.types';
-import { loadImage, renderRotatedImage, canvasToUint8Array } from '../image/canvas-utils';
+import { loadImage, renderRotatedImage, renderProcessedImage, canvasToUint8Array } from '../image/canvas-utils';
 
 const PAGE_SIZES = {
   A4: { width: 595.28, height: 841.89 },
@@ -49,31 +49,49 @@ export async function convertImagesToPdf(
     let imageBytes: Uint8Array;
     let isPng = item.file.type === 'image/png';
 
-    // If rotated or WebP, convert to canvas representation first
-    if (rotation !== 0 || item.file.type === 'image/webp') {
-      const rotatedCanvas = renderRotatedImage(imgElement, rotation);
-      // If original was PNG, preserve alpha by exporting as PNG; else JPEG
+    const hasTransformations =
+      (rotation % 360 !== 0) ||
+      Boolean(item.crop) ||
+      (item.filter && item.filter !== 'none') ||
+      (item.adjustments && (item.adjustments.brightness !== 0 || item.adjustments.contrast !== 0)) ||
+      item.file.type === 'image/webp';
+
+    // If rotated, cropped, enhanced, or WebP, convert via processing pipeline
+    if (hasTransformations) {
+      const processedCanvas = typeof renderProcessedImage === 'function'
+        ? renderProcessedImage(imgElement, {
+            rotation,
+            crop: item.crop,
+            filter: item.filter,
+            adjustments: item.adjustments,
+          })
+        : renderRotatedImage(imgElement, rotation);
+
+      // If source is PNG, export as PNG; otherwise JPEG
       if (isPng) {
-        imageBytes = await canvasToUint8Array(rotatedCanvas, 'image/png', options.quality);
+        imageBytes = await canvasToUint8Array(processedCanvas, 'image/png', options.quality);
       } else {
-        imageBytes = await canvasToUint8Array(rotatedCanvas, 'image/jpeg', options.quality);
+        imageBytes = await canvasToUint8Array(processedCanvas, 'image/jpeg', options.quality);
       }
     } else {
       const buffer = await item.file.arrayBuffer();
       imageBytes = new Uint8Array(buffer);
     }
 
-    // Embed in PDF
+    // Embed in PDF with robust format fallback
     let embeddedImage;
     if (isPng) {
       try {
         embeddedImage = await pdfDoc.embedPng(imageBytes);
       } catch {
-        // Fallback to JPEG if PNG embed fails
         embeddedImage = await pdfDoc.embedJpg(imageBytes);
       }
     } else {
-      embeddedImage = await pdfDoc.embedJpg(imageBytes);
+      try {
+        embeddedImage = await pdfDoc.embedJpg(imageBytes);
+      } catch {
+        embeddedImage = await pdfDoc.embedPng(imageBytes);
+      }
     }
 
     const imgDims = embeddedImage.scale(1);

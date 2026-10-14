@@ -10,6 +10,20 @@ export type SupportedFileFormat =
   | 'text/plain'
   | 'text/markdown';
 
+export interface CropRegion {
+  x: number; // 0 to 100 percentage
+  y: number; // 0 to 100 percentage
+  width: number; // 0 to 100 percentage
+  height: number; // 0 to 100 percentage
+}
+
+export type ImageFilterMode = 'none' | 'enhanced' | 'bw' | 'grayscale';
+
+export interface ImageAdjustments {
+  brightness: number; // -100 to 100, default 0
+  contrast: number; // -100 to 100, default 0
+}
+
 export interface FileItem {
   id: string;
   file: File;
@@ -18,6 +32,9 @@ export interface FileItem {
   type: string;
   previewUrl?: string;
   rotation: number; // 0, 90, 180, 270
+  crop?: CropRegion;
+  filter?: ImageFilterMode;
+  adjustments?: ImageAdjustments;
   pageCount?: number;
   status: 'idle' | 'validating' | 'ready' | 'processing' | 'completed' | 'error';
   errorMessage?: string;

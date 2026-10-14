@@ -16,6 +16,12 @@ vi.mock('../lib/image/canvas-utils', () => {
       canvas.height = 400;
       return canvas;
     }),
+    renderProcessedImage: vi.fn().mockImplementation(() => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 300;
+      canvas.height = 400;
+      return canvas;
+    }),
     canvasToUint8Array: vi.fn().mockImplementation(async () => {
       // Return a minimal valid 1x1 PNG Uint8Array byte array for pdfDoc.embedPng / embedJpg
       const dummyPngBase64 =
@@ -102,6 +108,21 @@ describe('Image to PDF Engine', () => {
 
     const pdfBlob = await convertImagesToPdf([rotatedItem], defaultOptions);
     expect(pdfBlob).toBeInstanceOf(Blob);
+  });
+
+  it('handles cropped and enhanced images correctly', async () => {
+    const croppedAndEnhancedItem: FileItem = {
+      ...sampleItem,
+      crop: { x: 10, y: 10, width: 80, height: 80 },
+      filter: 'enhanced',
+      adjustments: { brightness: 15, contrast: 20 },
+    };
+
+    const pdfBlob = await convertImagesToPdf([croppedAndEnhancedItem], defaultOptions);
+    expect(pdfBlob).toBeInstanceOf(Blob);
+    const pdfBuffer = await pdfBlob.arrayBuffer();
+    const pdfDoc = await PDFDocument.load(pdfBuffer);
+    expect(pdfDoc.getPageCount()).toBe(1);
   });
 
   it('converts multiple images into a multi-page PDF', async () => {

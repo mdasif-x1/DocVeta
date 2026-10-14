@@ -3,10 +3,12 @@ import type { FileItem } from '../../types/file.types';
 import type { ProcessingProgress } from '../../types/processing.types';
 import type { ToolMetadata } from '../../types/tool.types';
 import { FileUpload } from '../../components/file-upload/FileUpload';
+import { CameraCaptureModal } from '../../components/camera/CameraCaptureModal';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { Button } from '../../components/ui/Button';
 import { Alert } from '../../components/ui/Alert';
 import { performImageOcr } from '../../lib/ocr/image-ocr';
+import { createThumbnailUrl } from '../../lib/image/canvas-utils';
 import { downloadText } from '../../lib/utilities/download';
 import { Copy, Check, Download, RefreshCw, ScanText, Info } from 'lucide-react';
 import { formatBytes } from '../../lib/utilities/formatters';
@@ -23,6 +25,34 @@ export const ImageToTextFeature: React.FC<ImageToTextFeatureProps> = ({ tool }) 
   const [extractedText, setExtractedText] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
+
+  const handleCameraPhotosCaptured = async (rawFiles: File[]) => {
+    if (rawFiles.length === 0) return;
+    const file = rawFiles[0];
+    let previewUrl: string | undefined;
+    try {
+      previewUrl = await createThumbnailUrl(file, 200, 200);
+    } catch {
+      // Fallback
+    }
+
+    const item: FileItem = {
+      id: `ocr-cam-${Date.now()}`,
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      previewUrl,
+      rotation: 0,
+      status: 'ready',
+    };
+
+    setSelectedFileItem(item);
+    setExtractedText(null);
+    setConfidence(null);
+    setErrorMessage(null);
+  };
 
   const handleFileSelected = (items: FileItem[]) => {
     if (items.length > 0) {
@@ -92,6 +122,7 @@ export const ImageToTextFeature: React.FC<ImageToTextFeatureProps> = ({ tool }) 
           acceptedExtensions={tool.acceptedExtensions}
           multiple={false}
           allowCamera={tool.allowCamera}
+          onOpenScanner={() => setIsCameraModalOpen(true)}
           maxFiles={1}
           maxFileSize={tool.limits.maxSingleSize}
           onFilesSelected={handleFileSelected}
@@ -221,6 +252,13 @@ export const ImageToTextFeature: React.FC<ImageToTextFeatureProps> = ({ tool }) 
           </div>
         </div>
       )}
+
+      {/* Live Camera Scanner Modal */}
+      <CameraCaptureModal
+        isOpen={isCameraModalOpen}
+        onClose={() => setIsCameraModalOpen(false)}
+        onCapturePhotos={handleCameraPhotosCaptured}
+      />
     </div>
   );
 };
